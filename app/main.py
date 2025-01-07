@@ -4,7 +4,7 @@ import os
 import zlib
 
 
-def write_sha_data(option: str, file_name: str, object_path) -> str:
+def write_sha_data(file_name: str, object_path) -> str:
     with open(file_name, "rb") as f:
         data = f.read()
 
@@ -12,18 +12,17 @@ def write_sha_data(option: str, file_name: str, object_path) -> str:
 
     sha = hashlib.sha1(result).hexdigest()
 
-    print(sha)
+    # Determine the directory and file paths based on the SHA-1 hash
+    dir_path = os.path.join(object_path, sha[:2])
+    file_path = os.path.join(dir_path, sha[2:])
 
-    file_path = f"{object_path}/{sha[:2]}"
-    # Extract the directory portion
-    dir_path = os.path.dirname(file_path)
-
-    # Create directories; won't raise an error if they already exist
+    # Ensure the directory exists
     os.makedirs(dir_path, exist_ok=True)
 
-    # Optional: Create the file after ensuring directories exist
-    with open(sha[2:], 'wb') as f:
-        f.write(result)
+    compressed_data = zlib.compress(result)
+
+    with open(file_path, 'wb') as f:
+        f.write(compressed_data)
 
     return sha
 
@@ -65,9 +64,9 @@ def main():
         option = sys.argv[2]
         file_name = sys.argv[3]
 
-        sha1 = write_sha_data(option, file_name, object_path)
+        sha1 = write_sha_data(file_name, object_path)
 
-        return sha1
+        print(sha1)
         # with open(f"{object_path}/{sha1[:2]}/{sha1[2:]}", "wb") as f:
         #     f.write(s)
     else:
