@@ -5,7 +5,7 @@ import zlib
 
 
 def write_sha_data(option: str, file_name: str, object_path) -> str:
-    with open(file_name, "wb") as f:
+    with open(file_name, "rb") as f:
         data = f.read()
 
     result = b'blob' + b' ' + str(len(data)).encode() + b'\x00' + data
