@@ -12,6 +12,8 @@ def write_sha_data(option: str, file_name: str, object_path) -> str:
 
     sha = hashlib.sha1(result).hexdigest()
 
+    print(sha)
+
     file_path = f"{object_path}/{sha[:2]}"
     # Extract the directory portion
     dir_path = os.path.dirname(file_path)
