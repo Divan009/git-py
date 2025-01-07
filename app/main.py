@@ -29,7 +29,6 @@ def main():
                 row = zlib.decompress(f.read())
                 size, content = row.split(b"\0", maxsplit=1)
                 print(content.decode(encoding="utf-8"), end="")
-                print(size.decode(encoding="utf-8"), end="")
     else:
         raise RuntimeError(f"Unknown command #{command}")
 
