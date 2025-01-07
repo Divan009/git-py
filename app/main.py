@@ -25,7 +25,6 @@ def main():
         blob_sha = sys.argv[3]
 
         if option == "-p":
-            os.chdir(".git/objects")
             with open(f".git/objects/{blob_sha[:2]}/{blob_sha[2:]}", "rb") as f:
                 row = zlib.decompress(f.read())
                 size, content = row.split(b"\0", maxsplit=1)
