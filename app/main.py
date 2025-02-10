@@ -1,7 +1,49 @@
 import hashlib
 import sys
 import os
+import time
 import zlib
+
+
+def commit(tree_sha, message_text, parent_sha):
+    commit_content = b""
+
+    commit_content += f"tree {tree_sha}\n".encode("utf-8")
+
+    if parent_sha:
+        commit_content += f"parent {parent_sha}\n".encode("utf-8")
+
+    author = "Div Shiv <test@test.com>"
+    timestamp = time.strftime("%s %z", time.localtime())  # Unix timestamp + timezone
+
+    commit_content += f"author {author} {timestamp}\n".encode("utf-8")
+    commit_content += f"committer {author} {timestamp}\n".encode("utf-8")
+
+    commit_content += b"\n"
+
+    # Append commit message
+    commit_content += message_text.encode("utf-8") + b"\n"
+
+    header = f"commit {len(commit_content)}\0".encode("utf-8")
+    full_commit_object = header + commit_content
+
+    # Compute SHA-1 hash for the blob object.
+    blob_sha = hashlib.sha1(full_commit_object).hexdigest()
+    # Compress the blob object.
+    compressed_blob = zlib.compress(full_commit_object)
+
+    folder_name = blob_sha[:2]
+    file_name = blob_sha[2:]
+
+    full_path = os.path.join(".git", "objects", folder_name)
+    if not os.path.exists(full_path):
+        os.mkdir(full_path)
+
+    object_path = os.path.join(full_path, file_name)
+    with open(object_path, 'wb') as f:
+        f.write(compressed_blob)
+
+    return blob_sha
 
 
 def write_tree(path="."):
@@ -172,6 +214,10 @@ def main():
 
     elif command == "write-tree":
         print(write_tree())
+
+    elif command == "commit-tree":
+        tree_sha, parent_option, commit_sha, msg_option, msg = sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6]
+        print(commit(tree_sha=tree_sha, message_text=msg, parent_sha=commit_sha))
 
     else:
         raise RuntimeError(f"Unknown command #{command}")
