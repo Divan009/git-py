@@ -70,10 +70,10 @@ def main():
 
     elif command == "ls-tree":
         option = sys.argv[2]
-        tree_sha = sys.argv[3]
+        sha_hash = sys.argv[3]
 
         if option == "--name-only":
-            with open(f".git/objects/{hash[:2]}/{hash[2:]}", "rb") as f:
+            with open(f".git/objects/{sha_hash[:2]}/{sha_hash[2:]}", "rb") as f:
                 data = zlib.decompress(f.read())
                 _, binary = data.split(b"\x00", maxsplit=1)
                 while binary:
@@ -81,8 +81,8 @@ def main():
                     _, name = mode.split()
                     binary_data = binary_data[20:]
                     print(name.decode("utf-8"))
-    else:
-        sys.exit(1)
+        else:
+            sys.exit(1)
 
 
 
