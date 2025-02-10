@@ -219,6 +219,8 @@ def main():
         tree_sha, parent_option, commit_sha, msg_option, msg = sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6]
         print(commit(tree_sha=tree_sha, message_text=msg, parent_sha=commit_sha))
 
+    elif command == "clone":
+        pass
     else:
         raise RuntimeError(f"Unknown command #{command}")
 
