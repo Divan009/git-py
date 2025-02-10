@@ -81,8 +81,8 @@ def main():
                     _, name = mode.split()
                     binary_data = binary_data[20:]
                     print(name.decode("utf-8"))
-        else:
-            sys.exit(1)
+                else:
+                    sys.exit(1)
 
 
 
