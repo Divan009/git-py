@@ -27,6 +27,9 @@ def write_sha_data(file_name: str, object_path) -> str:
     return sha
 
 
+def write_tree()
+
+
 def main():
     # You can use print statements as follows for debugging, they'll be visible when running tests.
     print("Logs from your program will appear here!", file=sys.stderr)
@@ -67,8 +70,25 @@ def main():
         sha1 = write_sha_data(file_name, object_path)
 
         print(sha1)
-        # with open(f"{object_path}/{sha1[:2]}/{sha1[2:]}", "wb") as f:
-        #     f.write(s)
+
+    elif command == "ls-tree":
+        option = sys.argv[2]
+        tree_sha = sys.argv[3]
+
+        if option == "--name-only":
+            with open(f".git/objects/{hash[:2]}/{hash[2:]}", "rb") as f:
+                data = zlib.decompress(f.read())
+                _, binary = data.split(b"\x00", maxsplit=1)
+                while binary:
+                    mode, binary_data = binary.split(b"\x00", maxsplit=1)
+                    _, name = mode.split()
+                    binary_data = binary_data[20:]
+                    print(name.decode("utf-8"))
+    else:
+        sys.exit(1)
+
+
+
     else:
         raise RuntimeError(f"Unknown command #{command}")
 
