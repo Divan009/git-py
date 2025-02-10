@@ -27,9 +27,6 @@ def write_sha_data(file_name: str, object_path) -> str:
     return sha
 
 
-def write_tree()
-
-
 def main():
     # You can use print statements as follows for debugging, they'll be visible when running tests.
     print("Logs from your program will appear here!", file=sys.stderr)
