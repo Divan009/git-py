@@ -4,6 +4,94 @@ import os
 import zlib
 
 
+def write_tree(path="."):
+    """
+     :return: sha
+    """
+
+    result = []
+    with os.scandir(path) as entries:
+        for entry in entries:
+            full_path = os.path.join(path, entry.name)
+
+            #  create a tree object and record hash
+            if entry.is_dir():
+                if entry.name == ".git":
+                    continue
+                tree_sha = write_tree(full_path)
+                # Convert the hex digest to raw 20-byte binary value
+                tree_sha_bin = bytes.fromhex(tree_sha)
+                # Append a tree entry with mode "40000" for directories
+                result.append((entry.name, "40000", tree_sha_bin))
+            # entry is a file, create a blob object and record its SHA hash
+            elif entry.is_file():
+                # Create a blob for the file
+                hash = write_blob(full_path)
+                blob_sha_bin = bytes.fromhex(hash)
+                # Append a blob entry with mode "100644" (regular file)
+                result.append((entry.name, "100644", blob_sha_bin))
+
+        result.sort(key=lambda e: e[0])
+        # Build the tree object content: for each entry, append
+        # "<mode> <name>\0<20_byte_sha>"
+        tree_content = b""
+        for name, mode, sha in result:
+            entry = f"{mode} {name}".encode("utf-8") + b"\x00" + sha
+            tree_content += entry
+
+        header = f"tree {len(tree_content)}\0".encode("utf-8")
+        full_tree_object = header + tree_content
+
+        # Compute the SHA-1 hash for the tree object
+        full_tree_object_hash = hashlib.sha1(full_tree_object).hexdigest()
+
+        full_tree_object_compress = zlib.compress(full_tree_object)
+
+        # Determine the storage location for the tree object
+        object_dir = os.path.join(".git", "objects", full_tree_object_hash[:2])
+        if not os.path.exists(object_dir):
+            os.makedirs(object_dir)
+        object_path = os.path.join(object_dir, full_tree_object_hash[2:])
+
+        # Write the object if it doesn't exist already
+        if not os.path.exists(object_path):
+            with open(object_path, "wb") as f:
+                f.write(full_tree_object_compress)
+
+    return full_tree_object_hash
+
+
+def write_blob(file_path: str) -> str:
+    """
+    Reads the file at 'file_path', creates a blob object,
+    writes it to .git/objects, and returns its SHA-1 hash.
+    """
+    with open(file_path, "rb") as f:
+        data = f.read()
+
+    # Build the blob object: header "blob <size>\0" + data.
+    header = f"blob {len(data)}\0".encode("utf-8")
+    blob_object = header + data
+
+    # Compute SHA-1 hash for the blob object.
+    blob_sha = hashlib.sha1(blob_object).hexdigest()
+
+    # Compress the blob object.
+    compressed_blob = zlib.compress(blob_object)
+
+    # Determine the storage location under .git/objects
+    object_dir = os.path.join(".git", "objects", blob_sha[:2])
+    if not os.path.exists(object_dir):
+        os.makedirs(object_dir)
+    object_path = os.path.join(object_dir, blob_sha[2:])
+
+    # Write the blob object if it doesn't already exist.
+    if not os.path.exists(object_path):
+        with open(object_path, "wb") as f:
+            f.write(compressed_blob)
+
+    return blob_sha
+
 def write_sha_data(file_name: str, object_path) -> str:
     with open(file_name, "rb") as f:
         data = f.read()
@@ -81,13 +169,12 @@ def main():
                     _, name = mode.split()
                     binary_data = binary_data[20:]
                     print(name.decode("utf-8"))
-                # else:
-                #     sys.exit(1)
 
+    elif command == "write-tree":
+        print(write_tree())
 
-
-        else:
-            raise RuntimeError(f"Unknown command #{command}")
+    else:
+        raise RuntimeError(f"Unknown command #{command}")
 
 
 if __name__ == "__main__":
