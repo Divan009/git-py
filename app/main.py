@@ -2,7 +2,7 @@ import sys
 from argparse import ArgumentParser
 
 from app.commands import initialize, cat_file, write_sha_data, ls_tree, commit
-from app.utils import TreeClass
+from app.utils import Tree
 
 
 def main():
@@ -68,7 +68,7 @@ def main():
                     print(entry.name)
 
         case "write-tree":
-            tree_object = TreeClass()
+            tree_object = Tree()
             print(tree_object.write_tree(path="."))
 
         case "commit-tree":
