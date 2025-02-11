@@ -64,7 +64,7 @@ def main():
             entries = ls_tree(tree_hash)
 
             if args.name_only:
-                for entry in sorted(entries, key=lambda x: entry.name):
+                for entry in sorted(entries, key=lambda x: x.name):
                     print(entry.name)
 
         case "write-tree":
@@ -73,19 +73,19 @@ def main():
 
         case "commit-tree":
             parser = ArgumentParser(description="Commit all the files in the repository")
-            parser.add_argument("tree-sha")
+            parser.add_argument("tree_sha")
             parser.add_argument(
                 "-p",
-                "parent",
+                "--parent",
                 help="Can specify the parent commit of the tree",
             )
             parser.add_argument(
-                "--m",
-                "message",
+                "-m",
+                "--message",
                 help="Can specify the commit message"
             )
             args = parser.parse_args(sys.argv[2:])
-            tree_hash = args.tree_hash
+            tree_hash = args.tree_sha
             parent = args.parent
             message = args.message
             print(commit(tree_sha=tree_hash, message_text=message, parent_sha=parent))

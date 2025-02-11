@@ -3,6 +3,8 @@ import time
 
 from app.config import GIT_DIR, OBJECTS_DIR
 from app.objects import write_git_objects, decompress_git_objects
+from app.utils import TreeEntry
+
 
 def initialize():
     os.mkdir(GIT_DIR)
@@ -23,12 +25,40 @@ def write_sha_data(file_name):
 
 
 def ls_tree(tree_hash):
-    content_bytes = decompress_git_objects(tree_hash)
-    while content_bytes:
-        mode, binary_data = content_bytes.split(b"\x00", maxsplit=1)
-        _, name = mode.split()
-        binary_data = binary_data[20:]
-        print(name.decode("utf-8"))
+    contents = decompress_git_objects(tree_hash)
+
+    parsed_entries: list[TreeEntry] = []
+    pos = 0
+
+    # Iterate over the contents using a position pointer.
+    while pos < len(contents):
+        # Find the space that separates the file mode from the filename.
+        space_index = contents.find(b" ", pos)
+        if space_index == -1:
+            break  # Malformed entry; no space found
+
+        # The mode is from pos up to the space.
+        mode = contents[pos:space_index].decode()
+
+        # Find the null byte that terminates the filename.
+        null_index = contents.find(b"\x00", space_index)
+        if null_index == -1:
+            break  # Malformed entry; no null terminator found
+
+        # The filename is from after the space to the null byte.
+        name = contents[space_index + 1:null_index].decode()
+
+        # The SHA-1 hash is the 20 bytes immediately after the null byte.
+        sha_start = null_index + 1
+        sha_end = sha_start + 20
+        sha_hash = contents[sha_start:sha_end].hex()
+        # Append the parsed entry (convert SHA to hexadecimal representation)
+        parsed_entries.append(TreeEntry(mode=mode, name=name, sha_hash=sha_hash))
+
+        # Move the pointer to the start of the next entry
+        pos = sha_end
+
+    return parsed_entries
 
 
 def commit(tree_sha, message_text, parent_sha):
@@ -49,10 +79,10 @@ def commit(tree_sha, message_text, parent_sha):
 
     # Append commit message
     commit_content += message_text.encode("utf-8") + b"\n"
+    # header = f"commit {len(commit_content)}\0".encode("utf-8")
 
-    header = f"commit {len(commit_content)}\0".encode("utf-8")
-    full_commit_object = header + commit_content
+    # full_commit_object = header + commit_content
 
-    object_hash = write_git_objects(full_commit_object, "tree")
+    object_hash = write_git_objects(commit_content, "commit")
 
     return object_hash
