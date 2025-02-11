@@ -79,9 +79,6 @@ def commit(tree_sha, message_text, parent_sha):
 
     # Append commit message
     commit_content += message_text.encode("utf-8") + b"\n"
-    # header = f"commit {len(commit_content)}\0".encode("utf-8")
-
-    # full_commit_object = header + commit_content
 
     object_hash = write_git_objects(commit_content, "commit")
 

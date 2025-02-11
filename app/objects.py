@@ -6,7 +6,6 @@ from app.config import OBJECTS_DIR
 
 
 def write_git_objects(contents: bytes, obj_type: str, should_write: bool = True) -> str:
-    # blob_object = b'blob' + b' ' + str(len(contents)).encode() + b'\x00' + contents
     blob_object = obj_type.encode("utf-8") + b' ' + str(len(contents)).encode() + b'\x00' + contents
     blob_object_hash = hashlib.sha1(blob_object).hexdigest()
 

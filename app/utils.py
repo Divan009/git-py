@@ -89,10 +89,6 @@ class TreeClass:
         object_hash = hashlib.sha1(blob_object).digest()
         return object_hash, contents
 
-        # header = f"tree {len(tree_content)}\0".encode("utf-8")
-        # full_tree_object = header + tree_content
-
-
     def write_tree(self, path: str | None = None) -> str:
         tree = self._create_tree_structure(path)
         _, contents = self._encode_tree(tree)
